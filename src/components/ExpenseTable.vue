@@ -15,7 +15,7 @@
 				<tr
 					class="cursor-pointer border-2 border-black duration-300 bg-green-500"
 					v-for="(expense, index) in expenses"
-					:key="index"
+					:key="expense.id"
 				>
 					<td class="py-3">
 						{{ index + 1 }}
@@ -34,7 +34,7 @@
                </td>
 					<td>
 						<img 
-                     @click="removeExpense(index)"
+                     @click="deleteExpense(expense.id)"
                      class="w-5 h-5" 
                      src="../assets/x.png" 
                      alt="X" 
@@ -51,11 +51,23 @@ export default {
 	name: 'ExpenseTable',
 	props: {
 		expenses: [],
+		expensesApi: String
 	},
    methods: {
-      removeExpense(index) {
-         this.$emit("removeExpense", index);
-      }
+      async deleteExpense(id) {
+			try {
+				await fetch(this.expensesApi,
+					{
+						method: 'DELETE',
+						body: JSON.stringify(id)
+					}
+				).then((response) => response.text());
+				location.reload();
+			} catch(error) {
+				console.log(error);
+			}
+		}
+
    }
 };
 </script>

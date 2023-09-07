@@ -31,7 +31,7 @@
       <button @click="addExpense" type="submit" class="bg-green-600 hover:bg-green-500 w-52 p-3 rounded-lg text-white text-2xl font-semibold">Add</button>  
     </div>
   </main>
-  <ExpenseTable :expenses="this.expenses" @removeExpense="removeExpense" />
+  <ExpenseTable :expenses="this.expenses" :expensesApi="this.expensesApi" />
 </template>
 
 <script>
@@ -59,34 +59,39 @@ export default {
         let result = await fetch(this.expensesApi);
         this.expenses = await result.json();
       },
-      async postExpenses() {
-        try {
-          await fetch(
-              this.expensesApi,
-              {
-                method: 'POST',
-                body: JSON.stringify(this.expenseObj)
-              }
-            ).then((response) => console.log(response.text()));
-        } catch (error) {
-          console.log(error);
-        }
-      },
       addExpense() {
-         this.expenses.push({
+          this.expenses.push({
             'type': this.expenseObj.type,
             'name': this.expenseObj.name,
             'date': this.expenseObj.date,
             'amount': this.expenseObj.amount
-         });
-         this.expenseObj.type = '',
-         this.expenseObj.name = '',
-         this.expenseObj.date = '',
-         this.expenseObj.amount = ''
+          });
+          this.postExpenses();
+          this.expenseObj.type = '',
+          this.expenseObj.name = '',
+          this.expenseObj.date = '',
+          this.expenseObj.amount = ''
       },
-      removeExpense(index) {
-        this.expenses.splice(index, 1);
-      }
+      async postExpenses() {
+        try {
+          const response = await fetch(this.expensesApi, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(this.expenseObj)
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to post data. Status: ${response.status} - ${response.statusText}`);
+          }
+
+          const responseData = await response.json();
+          console.log("Expense added:", responseData);
+        } catch (error) {
+          console.error("Error adding expense:", error);
+        }
+      },
    },
    created() {
       this.getExpenses();
